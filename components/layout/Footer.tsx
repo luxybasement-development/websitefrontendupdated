@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Shield, Instagram, Mail } from 'lucide-react';
-import NewsletterSection from '@/components/home/NewsletterSection';
+import dynamic from 'next/dynamic';
+
+const NewsletterSection = dynamic(() => import('@/components/home/NewsletterSection'), { ssr: false });
 
 const SHOP_LINKS = [
   { label: 'All Items', href: '/products' },
