@@ -3,7 +3,6 @@ import HeroSection from '@/components/home/HeroSection';
 import BrandStrip from '@/components/home/BrandStrip';
 import FeaturedProducts from '@/components/home/FeaturedProducts';
 import ManifestoSection from '@/components/home/ManifestoSection';
-import CategoryGrid from '@/components/home/CategoryGrid';
 import NewsletterSection from '@/components/home/NewsletterSection';
 import ProductCardSkeleton from '@/components/ui/ProductCardSkeleton';
 
@@ -30,9 +29,6 @@ export default function HomePage() {
         <FeaturedProducts />
       </Suspense>
       <ManifestoSection />
-      <Suspense fallback={<div className="py-24 bg-vault-surface border-y border-vault-border" />}>
-        <CategoryGrid />
-      </Suspense>
       <NewsletterSection />
     </>
   );
