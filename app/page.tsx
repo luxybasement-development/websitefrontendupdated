@@ -3,7 +3,6 @@ import HeroSection from '@/components/home/HeroSection';
 import BrandStrip from '@/components/home/BrandStrip';
 import FeaturedProducts from '@/components/home/FeaturedProducts';
 import ManifestoSection from '@/components/home/ManifestoSection';
-import NewsletterSection from '@/components/home/NewsletterSection';
 import ProductCardSkeleton from '@/components/ui/ProductCardSkeleton';
 
 function ProductsSkeleton() {
@@ -31,9 +30,7 @@ export default function HomePage() {
         <FeaturedProducts />
       </Suspense>
       
-      {/* Forced stacking: Manifesto immediately followed by Newsletter */}
       <ManifestoSection />
-      <NewsletterSection />
     </main>
   );
 }
