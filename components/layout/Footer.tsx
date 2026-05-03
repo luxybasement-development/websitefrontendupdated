@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Shield, Instagram, Mail } from 'lucide-react';
+import NewsletterSection from '@/components/home/NewsletterSection';
 
 const SHOP_LINKS = [
   { label: 'All Items', href: '/products' },
@@ -22,7 +23,7 @@ const INFO_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-vault-surface border-t border-vault-border mt-24">
+    <footer className="bg-vault-surface border-t border-vault-border">
       {/* Manifesto Banner */}
       <div className="border-b border-vault-border py-12 px-4">
         <div className="max-w-3xl mx-auto text-center">
@@ -38,6 +39,9 @@ export default function Footer() {
           </p>
         </div>
       </div>
+
+      {/* Newsletter */}
+      <NewsletterSection />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -56,7 +60,7 @@ export default function Footer() {
               Backed by nearly 30 years of professional authentication experience — no studio overhead, no inflated prices.
             </p>
             <div className="flex items-center gap-4 mb-6">
-              <a
+              
                 href="https://instagram.com/luxybasement"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -65,7 +69,7 @@ export default function Footer() {
               >
                 <Instagram size={18} strokeWidth={1.5} />
               </a>
-              <a
+              
                 href="/contact"
                 aria-label="Contact Us"
                 className="text-vault-muted hover:text-vault-gold transition-colors"
