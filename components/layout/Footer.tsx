@@ -25,7 +25,7 @@ const INFO_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-vault-surface border-t border-vault-border">
+    <div className="bg-vault-surface border-t border-vault-border">
       {/* Manifesto Banner */}
       <div className="border-b border-vault-border py-12 px-4">
         <div className="max-w-3xl mx-auto text-center">
@@ -127,6 +127,6 @@ export default function Footer() {
           </p>
         </div>
       </div>
-    </footer>
+    </div>
   );
 }
