@@ -59,7 +59,7 @@ export default function Footer() {
               Backed by nearly 30 years of professional authentication experience — no studio overhead, no inflated prices.
             </p>
             <div className="flex items-center gap-4 mb-6">
-              
+              <a
                 href="https://instagram.com/luxybasement"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -68,13 +68,13 @@ export default function Footer() {
               >
                 <Instagram size={18} strokeWidth={1.5} />
               </a>
-              
+              <Link
                 href="/contact"
                 aria-label="Contact Us"
                 className="text-vault-muted hover:text-vault-gold transition-colors"
               >
                 <Mail size={18} strokeWidth={1.5} />
-              </a>
+              </Link>
             </div>
             <div className="flex items-center gap-2 border border-vault-border bg-vault-bg px-4 py-3 w-fit">
               <Shield size={13} className="text-vault-gold" />
