@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ZoomIn, X } from 'lucide-react';
@@ -16,7 +17,13 @@ interface ImageGalleryProps {
 export default function ImageGallery({ images, title }: ImageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const activeImage = images[activeIndex];
+
+  // Ensure portal only renders on the client side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   function prev() {
     setActiveIndex((i) => (i === 0 ? images.length - 1 : i - 1));
@@ -137,69 +144,72 @@ export default function ImageGallery({ images, title }: ImageGalleryProps) {
         )}
       </div>
 
-      {/* Lightbox */}
-      <AnimatePresence>
-        {lightboxOpen && activeImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[9999] bg-black flex items-center justify-center"
-            onClick={closeLightbox}
-          >
-            <button
-              onClick={closeLightbox}
-              className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center border border-white/20 text-white/70 hover:text-white hover:border-white/50 transition-colors"
-              aria-label="Close"
-            >
-              <X size={18} />
-            </button>
-
-            {images.length > 1 && (
-              <div className="absolute top-5 left-1/2 -translate-x-1/2 text-white/50 text-xs tracking-widest uppercase">
-                {activeIndex + 1} / {images.length}
-              </div>
-            )}
-
+      {/* Lightbox - Portaled to document.body */}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {lightboxOpen && activeImage && (
             <motion.div
-              key={activeIndex}
-              initial={{ opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="relative max-w-5xl max-h-[90vh] mx-auto px-16 flex items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 z-[99999] bg-black flex items-center justify-center"
+              onClick={closeLightbox}
             >
-              <img
-                src={activeImage.url}
-                alt={activeImage.altText ?? title}
-                className="max-h-[85vh] max-w-full w-auto h-auto object-contain"
-                loading="eager"
-              />
-            </motion.div>
+              <button
+                onClick={closeLightbox}
+                className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center border border-white/20 text-white/70 hover:text-white hover:border-white/50 transition-colors"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
 
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => { e.stopPropagation(); prev(); }}
-                  className="absolute left-5 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center border border-white/20 text-white/70 hover:text-white hover:border-white/50 transition-colors"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); next(); }}
-                  className="absolute right-5 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center border border-white/20 text-white/70 hover:text-white hover:border-white/50 transition-colors"
-                  aria-label="Next image"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {images.length > 1 && (
+                <div className="absolute top-5 left-1/2 -translate-x-1/2 text-white/50 text-xs tracking-widest uppercase">
+                  {activeIndex + 1} / {images.length}
+                </div>
+              )}
+
+              <motion.div
+                key={activeIndex}
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.2 }}
+                className="relative max-w-5xl max-h-[90vh] mx-auto px-16 flex items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img
+                  src={activeImage.url}
+                  alt={activeImage.altText ?? title}
+                  className="max-h-[85vh] max-w-full w-auto h-auto object-contain"
+                  loading="eager"
+                />
+              </motion.div>
+
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); prev(); }}
+                    className="absolute left-5 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center border border-white/20 text-white/70 hover:text-white hover:border-white/50 transition-colors"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); next(); }}
+                    className="absolute right-5 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center border border-white/20 text-white/70 hover:text-white hover:border-white/50 transition-colors"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 }
