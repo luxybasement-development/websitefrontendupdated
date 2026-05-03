@@ -22,14 +22,18 @@ function ProductsSkeleton() {
 
 export default function HomePage() {
   return (
-    <>
+    <main className="flex flex-col min-h-screen bg-vault-background">
       <HeroSection />
+      
       <BrandStrip />
+      
       <Suspense fallback={<ProductsSkeleton />}>
         <FeaturedProducts />
       </Suspense>
+      
+      {/* Forced stacking: Manifesto immediately followed by Newsletter */}
       <ManifestoSection />
       <NewsletterSection />
-    </>
+    </main>
   );
 }
