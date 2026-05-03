@@ -45,7 +45,7 @@ export default function NewsletterSection() {
   }
 
   return (
-    <section className="bg-vault-surface border-t border-vault-border py-20">
+    <section className="bg-vault-surface py-20">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="h-px w-8 bg-vault-gold" />
