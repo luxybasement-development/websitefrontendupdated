@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 90%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 90%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 90%;
+    --primary: 0 0% 90%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 0 0% 14%;
+    --accent-foreground: 0 0% 90%;
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 15%;
+    --input: 0 0% 14%;
+    --ring: 0 0% 60%;
+    --radius: 0.375rem;
+
+    --vault-bg: #0A0A0A;
+    --vault-surface: #111111;
+    --vault-surface-2: #161616;
+    --vault-border: #262626;
+    --vault-text: #E5E5E5;
+    --vault-muted: #737373;
+    --vault-gold: #C9A96E;
+    --vault-gold-muted: #8B6D42;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--vault-bg);
+    color: var(--vault-text);
+    font-feature-settings: "kern" 1, "liga" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .vault-border {
+    border-color: var(--vault-border);
+  }
+  .text-vault-muted {
+    color: var(--vault-muted);
+  }
+  .text-vault-gold {
+    color: var(--vault-gold);
+  }
+  .bg-vault {
+    background-color: var(--vault-bg);
+  }
+  .bg-vault-surface {
+    background-color: var(--vault-surface);
+  }
+  .bg-vault-surface-2 {
+    background-color: var(--vault-surface-2);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--vault-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--vault-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vault-muted);
+}
+
+/* Selection */
+::selection {
+  background: var(--vault-gold-muted);
+  color: var(--vault-text);
+}
