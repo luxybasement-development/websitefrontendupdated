@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { Search, X, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import type { ProductCardData } from '@/lib/shopify/types';
 
 const CATEGORIES = [
   { label: 'All', value: '' },
@@ -75,16 +74,27 @@ function matchesPrice(product: RawProduct, min: number, max: number): boolean {
   return price >= min && price <= max;
 }
 
+function matchesBrand(product: RawProduct, brand: string): boolean {
+  if (!brand) return true;
+  return product.vendor === brand;
+}
+
 export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
   const [priceIdx, setPriceIdx] = useState(0);
+  const [brand, setBrand] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [allProducts, setAllProducts] = useState<RawProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedPrice = PRICE_RANGES[priceIdx];
+
+  // Dynamically extract and sort unique brands from the loaded products
+  const availableBrands = Array.from(new Set(allProducts.map((p) => p.vendor)))
+    .filter(Boolean)
+    .sort();
 
   // Fetch products once when overlay first opens
   useEffect(() => {
@@ -97,7 +107,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
       .finally(() => setLoading(false));
   }, [isOpen, allProducts.length]);
 
-  // Focus input when opening
+  // Focus input when opening and reset state on close
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -105,6 +115,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
       setQuery('');
       setCategory('');
       setPriceIdx(0);
+      setBrand('');
       setShowFilters(false);
     }
   }, [isOpen]);
@@ -120,10 +131,11 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   const results = allProducts.filter((p) =>
     matchesQuery(p, query) &&
     matchesCategory(p, category) &&
-    matchesPrice(p, selectedPrice.min, selectedPrice.max)
+    matchesPrice(p, selectedPrice.min, selectedPrice.max) &&
+    matchesBrand(p, brand)
   );
 
-  const hasFilters = category !== '' || priceIdx !== 0;
+  const hasFilters = category !== '' || priceIdx !== 0 || brand !== '';
   const showResults = query.trim().length > 0 || hasFilters;
 
   return (
@@ -192,57 +204,94 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="py-4 flex flex-wrap gap-6 border-b border-vault-border">
-                      {/* Category */}
-                      <div className="flex flex-col gap-2">
-                        <p className="text-[10px] tracking-widest uppercase text-vault-muted">Category</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {CATEGORIES.map((cat) => (
+                    <div className="py-4 flex flex-col gap-6 border-b border-vault-border">
+                      
+                      <div className="flex flex-wrap gap-6">
+                        {/* Category */}
+                        <div className="flex flex-col gap-2">
+                          <p className="text-[10px] tracking-widest uppercase text-vault-muted">Category</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {CATEGORIES.map((cat) => (
+                              <button
+                                key={cat.value}
+                                onClick={() => setCategory(cat.value)}
+                                className={`px-3 py-1 text-xs tracking-wider uppercase border transition-all duration-150 ${
+                                  category === cat.value
+                                    ? 'border-vault-gold text-vault-gold bg-vault-gold/5'
+                                    : 'border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-border/80'
+                                }`}
+                              >
+                                {cat.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Price */}
+                        <div className="flex flex-col gap-2">
+                          <p className="text-[10px] tracking-widest uppercase text-vault-muted">Price</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {PRICE_RANGES.map((range, i) => (
+                              <button
+                                key={range.label}
+                                onClick={() => setPriceIdx(i)}
+                                className={`px-3 py-1 text-xs tracking-wider border transition-all duration-150 ${
+                                  priceIdx === i
+                                    ? 'border-vault-gold text-vault-gold bg-vault-gold/5'
+                                    : 'border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-border/80'
+                                }`}
+                              >
+                                {range.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Brand */}
+                      {availableBrands.length > 0 && (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-[10px] tracking-widest uppercase text-vault-muted">Brand</p>
+                          <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                             <button
-                              key={cat.value}
-                              onClick={() => setCategory(cat.value)}
+                              onClick={() => setBrand('')}
                               className={`px-3 py-1 text-xs tracking-wider uppercase border transition-all duration-150 ${
-                                category === cat.value
+                                brand === ''
                                   ? 'border-vault-gold text-vault-gold bg-vault-gold/5'
                                   : 'border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-border/80'
                               }`}
                             >
-                              {cat.label}
+                              All Brands
                             </button>
-                          ))}
+                            {availableBrands.map((b) => (
+                              <button
+                                key={b}
+                                onClick={() => setBrand(b)}
+                                className={`px-3 py-1 text-xs tracking-wider uppercase border transition-all duration-150 ${
+                                  brand === b
+                                    ? 'border-vault-gold text-vault-gold bg-vault-gold/5'
+                                    : 'border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-border/80'
+                                }`}
+                              >
+                                {b}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
 
-                      {/* Price */}
-                      <div className="flex flex-col gap-2">
-                        <p className="text-[10px] tracking-widest uppercase text-vault-muted">Price</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {PRICE_RANGES.map((range, i) => (
-                            <button
-                              key={range.label}
-                              onClick={() => setPriceIdx(i)}
-                              className={`px-3 py-1 text-xs tracking-wider border transition-all duration-150 ${
-                                priceIdx === i
-                                  ? 'border-vault-gold text-vault-gold bg-vault-gold/5'
-                                  : 'border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-border/80'
-                              }`}
-                            >
-                              {range.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
+                      {/* Clear Filters */}
                       {hasFilters && (
                         <div className="flex items-end">
                           <button
-                            onClick={() => { setCategory(''); setPriceIdx(0); }}
+                            onClick={() => { setCategory(''); setPriceIdx(0); setBrand(''); }}
                             className="text-xs text-vault-muted hover:text-vault-text underline underline-offset-2 transition-colors"
                           >
                             Clear filters
                           </button>
                         </div>
                       )}
+
                     </div>
                   </motion.div>
                 )}
