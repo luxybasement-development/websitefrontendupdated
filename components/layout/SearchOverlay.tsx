@@ -7,7 +7,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 const CATEGORIES = [
-  { label: 'All', value: '' },
   { label: 'Handbags', value: 'handbags' },
   { label: 'Watches', value: 'watches' },
   { label: 'Jewelry', value: 'jewelry' },
@@ -16,7 +15,6 @@ const CATEGORIES = [
 ];
 
 const PRICE_RANGES = [
-  { label: 'Any Price', min: 0, max: Infinity },
   { label: 'Under $500', min: 0, max: 500 },
   { label: '$500 – $1,000', min: 500, max: 1000 },
   { label: '$1,000 – $2,500', min: 1000, max: 2500 },
@@ -49,13 +47,15 @@ interface SearchOverlayProps {
   onClose: () => void;
 }
 
-function matchesCategory(product: RawProduct, category: string): boolean {
-  if (!category) return true;
-  const keywords = TYPE_MAP[category] ?? [category];
-  const type = (product.productType ?? '').toLowerCase();
-  const tags = product.tags.join(' ').toLowerCase();
-  const title = product.title.toLowerCase();
-  return keywords.some((kw) => type.includes(kw) || tags.includes(kw) || title.includes(kw));
+function matchesCategories(product: RawProduct, categories: string[]): boolean {
+  if (categories.length === 0) return true; // If nothing selected, match all
+  return categories.some((category) => {
+    const keywords = TYPE_MAP[category] ?? [category];
+    const type = (product.productType ?? '').toLowerCase();
+    const tags = product.tags.join(' ').toLowerCase();
+    const title = product.title.toLowerCase();
+    return keywords.some((kw) => type.includes(kw) || tags.includes(kw) || title.includes(kw));
+  });
 }
 
 function matchesQuery(product: RawProduct, query: string): boolean {
@@ -69,27 +69,29 @@ function matchesQuery(product: RawProduct, query: string): boolean {
   );
 }
 
-function matchesPrice(product: RawProduct, min: number, max: number): boolean {
+function matchesPrices(product: RawProduct, priceIndices: number[]): boolean {
+  if (priceIndices.length === 0) return true; // If nothing selected, match all
   const price = parseFloat(product.price.amount);
-  return price >= min && price <= max;
+  return priceIndices.some((idx) => {
+    const range = PRICE_RANGES[idx];
+    return price >= range.min && price <= range.max;
+  });
 }
 
-function matchesBrand(product: RawProduct, brand: string): boolean {
-  if (!brand) return true;
-  return product.vendor === brand;
+function matchesBrands(product: RawProduct, brands: string[]): boolean {
+  if (brands.length === 0) return true; // If nothing selected, match all
+  return brands.includes(product.vendor);
 }
 
 export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('');
-  const [priceIdx, setPriceIdx] = useState(0);
-  const [brand, setBrand] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedPriceIndices, setSelectedPriceIndices] = useState<number[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [allProducts, setAllProducts] = useState<RawProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const selectedPrice = PRICE_RANGES[priceIdx];
 
   // Dynamically extract and sort unique brands from the loaded products
   const availableBrands = Array.from(new Set(allProducts.map((p) => p.vendor)))
@@ -113,9 +115,9 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {
       setQuery('');
-      setCategory('');
-      setPriceIdx(0);
-      setBrand('');
+      setSelectedCategories([]);
+      setSelectedPriceIndices([]);
+      setSelectedBrands([]);
       setShowFilters(false);
     }
   }, [isOpen]);
@@ -128,14 +130,21 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     return () => window.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
 
+  // Helper function to toggle items in arrays
+  const toggleArrayItem = <T,>(setter: React.Dispatch<React.SetStateAction<T[]>>, item: T) => {
+    setter((prev) => 
+      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
+    );
+  };
+
   const results = allProducts.filter((p) =>
     matchesQuery(p, query) &&
-    matchesCategory(p, category) &&
-    matchesPrice(p, selectedPrice.min, selectedPrice.max) &&
-    matchesBrand(p, brand)
+    matchesCategories(p, selectedCategories) &&
+    matchesPrices(p, selectedPriceIndices) &&
+    matchesBrands(p, selectedBrands)
   );
 
-  const hasFilters = category !== '' || priceIdx !== 0 || brand !== '';
+  const hasFilters = selectedCategories.length > 0 || selectedPriceIndices.length > 0 || selectedBrands.length > 0;
   const showResults = query.trim().length > 0 || hasFilters;
 
   return (
@@ -211,12 +220,22 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                         <div className="flex flex-col gap-2">
                           <p className="text-[10px] tracking-widest uppercase text-vault-muted">Category</p>
                           <div className="flex flex-wrap gap-1.5">
+                            <button
+                              onClick={() => setSelectedCategories([])}
+                              className={`px-3 py-1 text-xs tracking-wider uppercase border transition-all duration-150 ${
+                                selectedCategories.length === 0
+                                  ? 'border-vault-gold text-vault-gold bg-vault-gold/5'
+                                  : 'border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-border/80'
+                              }`}
+                            >
+                              All Categories
+                            </button>
                             {CATEGORIES.map((cat) => (
                               <button
                                 key={cat.value}
-                                onClick={() => setCategory(cat.value)}
+                                onClick={() => toggleArrayItem(setSelectedCategories, cat.value)}
                                 className={`px-3 py-1 text-xs tracking-wider uppercase border transition-all duration-150 ${
-                                  category === cat.value
+                                  selectedCategories.includes(cat.value)
                                     ? 'border-vault-gold text-vault-gold bg-vault-gold/5'
                                     : 'border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-border/80'
                                 }`}
@@ -231,12 +250,22 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                         <div className="flex flex-col gap-2">
                           <p className="text-[10px] tracking-widest uppercase text-vault-muted">Price</p>
                           <div className="flex flex-wrap gap-1.5">
+                            <button
+                              onClick={() => setSelectedPriceIndices([])}
+                              className={`px-3 py-1 text-xs tracking-wider uppercase border transition-all duration-150 ${
+                                selectedPriceIndices.length === 0
+                                  ? 'border-vault-gold text-vault-gold bg-vault-gold/5'
+                                  : 'border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-border/80'
+                              }`}
+                            >
+                              Any Price
+                            </button>
                             {PRICE_RANGES.map((range, i) => (
                               <button
                                 key={range.label}
-                                onClick={() => setPriceIdx(i)}
-                                className={`px-3 py-1 text-xs tracking-wider border transition-all duration-150 ${
-                                  priceIdx === i
+                                onClick={() => toggleArrayItem(setSelectedPriceIndices, i)}
+                                className={`px-3 py-1 text-xs tracking-wider uppercase border transition-all duration-150 ${
+                                  selectedPriceIndices.includes(i)
                                     ? 'border-vault-gold text-vault-gold bg-vault-gold/5'
                                     : 'border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-border/80'
                                 }`}
@@ -254,9 +283,9 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                           <p className="text-[10px] tracking-widest uppercase text-vault-muted">Brand</p>
                           <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                             <button
-                              onClick={() => setBrand('')}
+                              onClick={() => setSelectedBrands([])}
                               className={`px-3 py-1 text-xs tracking-wider uppercase border transition-all duration-150 ${
-                                brand === ''
+                                selectedBrands.length === 0
                                   ? 'border-vault-gold text-vault-gold bg-vault-gold/5'
                                   : 'border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-border/80'
                               }`}
@@ -266,9 +295,9 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                             {availableBrands.map((b) => (
                               <button
                                 key={b}
-                                onClick={() => setBrand(b)}
+                                onClick={() => toggleArrayItem(setSelectedBrands, b)}
                                 className={`px-3 py-1 text-xs tracking-wider uppercase border transition-all duration-150 ${
-                                  brand === b
+                                  selectedBrands.includes(b)
                                     ? 'border-vault-gold text-vault-gold bg-vault-gold/5'
                                     : 'border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-border/80'
                                 }`}
@@ -284,7 +313,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                       {hasFilters && (
                         <div className="flex items-end">
                           <button
-                            onClick={() => { setCategory(''); setPriceIdx(0); setBrand(''); }}
+                            onClick={() => { setSelectedCategories([]); setSelectedPriceIndices([]); setSelectedBrands([]); }}
                             className="text-xs text-vault-muted hover:text-vault-text underline underline-offset-2 transition-colors"
                           >
                             Clear filters
