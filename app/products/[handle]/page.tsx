@@ -267,7 +267,7 @@ export default async function ProductPage({ params }: PageProps) {
                     />
                   </summary>
                   <div
-                    className="px-5 pb-5 text-sm text-vault-muted leading-relaxed prose prose-invert prose-sm max-w-none"
+                    className="px-5 pb-5 text-sm text-vault-muted leading-relaxed [&_p]:mb-4 last:[&_p]:mb-0 [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:mb-4 [&_strong]:font-semibold [&_strong]:text-vault-text"
                     dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
                   />
                 </details>
