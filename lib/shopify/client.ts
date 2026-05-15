@@ -6,6 +6,7 @@ import {
   GET_CATEGORY_PREVIEW_QUERY,
   CREATE_CART_MUTATION,
   ADD_TO_CART_MUTATION,
+  REMOVE_FROM_CART_MUTATION,
 } from './queries';
 
 const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN ?? '';
@@ -102,4 +103,12 @@ export async function addToCart(cartId: string, variantId: string): Promise<Shop
     { cartId, lines: [{ merchandiseId: variantId, quantity: 1 }] }
   );
   return data.cartLinesAdd.cart;
+}
+
+export async function removeFromCart(cartId: string, lineId: string): Promise<ShopifyCart> {
+  const data = await shopifyFetch<{ cartLinesRemove: { cart: ShopifyCart } }>(
+    REMOVE_FROM_CART_MUTATION,
+    { cartId, lineIds: [lineId] }
+  );
+  return data.cartLinesRemove.cart;
 }
