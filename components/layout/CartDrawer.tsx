@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingBag, ExternalLink, Shield, Lock } from 'lucide-react';
+import { X, ShoppingBag, ExternalLink, Shield, Lock, Trash2 } from 'lucide-react';
 import { useCart } from './CartProvider';
 
 function formatPrice(amount: string, currencyCode: string): string {
@@ -14,7 +14,7 @@ function formatPrice(amount: string, currencyCode: string): string {
 }
 
 export default function CartDrawer() {
-  const { cart, isOpen, closeCart } = useCart();
+  const { cart, isOpen, closeCart, removeItem, isLoading } = useCart();
 
   const lines = cart?.lines.edges.map((e) => e.node) ?? [];
   const subtotal = cart?.cost.subtotalAmount
@@ -92,19 +92,33 @@ export default function CartDrawer() {
                           </div>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[10px] tracking-widest uppercase text-vault-gold mb-1">
-                          {line.merchandise.product.title.split(' ')[0]}
-                        </p>
-                        <p className="text-sm font-medium text-vault-text line-clamp-2 leading-snug">
-                          {line.merchandise.product.title}
-                        </p>
-                        {line.merchandise.title !== 'Default Title' && (
-                          <p className="text-xs text-vault-muted mt-1">{line.merchandise.title}</p>
-                        )}
-                        <p className="text-sm font-semibold text-vault-text mt-2">
-                          {formatPrice(line.cost.totalAmount.amount, line.cost.totalAmount.currencyCode)}
-                        </p>
+                      
+                      <div className="flex-1 min-w-0 flex flex-col justify-between">
+                        <div>
+                          <p className="text-[10px] tracking-widest uppercase text-vault-gold mb-1">
+                            {line.merchandise.product.title.split(' ')[0]}
+                          </p>
+                          <p className="text-sm font-medium text-vault-text line-clamp-2 leading-snug">
+                            {line.merchandise.product.title}
+                          </p>
+                          {line.merchandise.title !== 'Default Title' && (
+                            <p className="text-xs text-vault-muted mt-1">{line.merchandise.title}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-sm font-semibold text-vault-text">
+                            {formatPrice(line.cost.totalAmount.amount, line.cost.totalAmount.currencyCode)}
+                          </p>
+                          <button
+                            onClick={() => removeItem(line.id)}
+                            disabled={isLoading}
+                            className="text-vault-muted hover:text-red-400 transition-colors disabled:opacity-50 flex items-center gap-1 text-xs"
+                            aria-label="Remove item"
+                          >
+                            <Trash2 size={14} strokeWidth={1.5} />
+                            <span>Remove</span>
+                          </button>
+                        </div>
                       </div>
                     </li>
                   ))}
