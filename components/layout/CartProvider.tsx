@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ShopifyCart } from '@/lib/shopify/types';
-import { createCart, addToCart, getCart } from '@/lib/shopify/client';
+import { createCart, addToCart, getCart, removeFromCart } from '@/lib/shopify/client';
 
 const CART_ID_KEY = 'lb_cart_id';
 
@@ -13,6 +13,7 @@ interface CartContextValue {
   openCart: () => void;
   closeCart: () => void;
   addItem: (variantId: string) => Promise<void>;
+  removeItem: (lineId: string) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -63,8 +64,24 @@ export default function CartProvider({ children }: { children: React.ReactNode }
     }
   }, [cart]);
 
+  const removeItem = useCallback(async (lineId: string) => {
+    if (!cart) return;
+    setIsLoading(true);
+    try {
+      const updated = await removeFromCart(cart.id, lineId);
+      if (updated.totalQuantity === 0) {
+        setCart(null);
+        localStorage.removeItem(CART_ID_KEY);
+      } else {
+        setCart(updated);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [cart]);
+
   return (
-    <CartContext.Provider value={{ cart, isOpen, isLoading, openCart, closeCart, addItem }}>
+    <CartContext.Provider value={{ cart, isOpen, isLoading, openCart, closeCart, addItem, removeItem }}>
       {children}
     </CartContext.Provider>
   );
