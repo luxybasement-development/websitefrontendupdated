@@ -232,3 +232,37 @@ export const ADD_TO_CART_MUTATION = `
     }
   }
 `;
+
+export const REMOVE_FROM_CART_MUTATION = `
+  mutation RemoveFromCart($cartId: ID!, $lineIds: [ID!]!) {
+    cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+      cart {
+        id
+        checkoutUrl
+        totalQuantity
+        cost {
+          totalAmount { amount currencyCode }
+          subtotalAmount { amount currencyCode }
+          totalTaxAmount { amount currencyCode }
+        }
+        lines(first: 20) {
+          edges {
+            node {
+              id
+              quantity
+              cost { totalAmount { amount currencyCode } }
+              merchandise {
+                ... on ProductVariant {
+                  id
+                  title
+                  product { title handle }
+                  image { url altText width height }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
